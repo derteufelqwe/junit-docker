@@ -1,4 +1,4 @@
-package de.derteufelqwe.junit4Docker.util
+package de.derteufelqwe.junitInDocker.util
 
 import java.io.ByteArrayOutputStream
 import java.io.ObjectOutputStream

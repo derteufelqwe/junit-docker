@@ -1,7 +1,7 @@
-package de.derteufelqwe.junit4Docker
+package de.derteufelqwe.junitInDocker
 
-import de.derteufelqwe.junit4Docker.util.LogPacketHeader
-import de.derteufelqwe.junit4Docker.util.LogSource
+import de.derteufelqwe.junitInDocker.util.LogPacketHeader
+import de.derteufelqwe.junitInDocker.util.LogSource
 import kotlinx.coroutines.*
 import java.io.*
 import java.lang.reflect.InvocationTargetException

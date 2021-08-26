@@ -1,13 +1,15 @@
 package de.derteufelqwe.example;
 
-import de.derteufelqwe.junit4Docker.DockerRunner;
-import de.derteufelqwe.junit4Docker.util.ContainerDestroyer;
-import de.derteufelqwe.junit4Docker.util.ContainerInfo;
-import de.derteufelqwe.junit4Docker.util.ContainerProvider;
+import de.derteufelqwe.junitInDocker.DockerRunner;
+import de.derteufelqwe.junitInDocker.util.ContainerDestroyer;
+import de.derteufelqwe.junitInDocker.util.ContainerInfo;
+import de.derteufelqwe.junitInDocker.util.ContainerProvider;
+import de.derteufelqwe.junitInDocker.util.RequiredClasses;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(DockerRunner.class)
+@RequiredClasses(value = {Dep1.class})
 public class ExampleTests {
 
     @ContainerProvider

@@ -1,6 +1,6 @@
-package de.derteufelqwe.junit4Docker
+package de.derteufelqwe.junitInDocker
 
-import de.derteufelqwe.junit4Docker.util.*
+import de.derteufelqwe.junitInDocker.util.*
 import kotlinx.coroutines.*
 import org.junit.After
 import org.junit.Before
@@ -15,9 +15,14 @@ import java.net.SocketException
 import java.nio.charset.StandardCharsets
 import java.rmi.registry.LocateRegistry
 import java.util.*
+import kotlin.collections.LinkedHashSet
+import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObject
 
 
+/**
+ * Custom JUnit4 runner, which makes it possible to run JUnit tests in docker containers or on remote machines in general.
+ */
 class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
 
     // Matches every newline except if it's the last char in the string
@@ -28,6 +33,10 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
     private var globalJUnitService: JUnitService? = null
 
 
+    /**
+     * Called once to execute all the filtered tests.
+     * Takes care of JUnits @Before @After annotations.
+     */
     override fun run(notifier: RunNotifier) {
         runBlocking {
             // Find the ContainerProvider method
@@ -110,6 +119,9 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
     }
 
 
+    /**
+     * Validates the method signature of a ContainerProvider method
+     */
     @Throws(RemoteJUnitException::class)
     private fun validateContainerProvider(method: Method) {
         if (!Modifier.isStatic(method.modifiers)) {
@@ -125,6 +137,9 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
         }
     }
 
+    /**
+     * Validates the method signature of a ContainerDestroyer method
+     */
     @Throws(RemoteJUnitException::class)
     private fun validateContainerDestroyer(method: Method) {
         if (!Modifier.isStatic(method.modifiers)) {
@@ -142,10 +157,15 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
     }
 
     /**
-     * Returns the hash of the main test class
+     * Gathers all required classes specified by the @RequiredClasses annotation, loads their bytecode and sends them to
+     * the RMI server so its classloader can preload the classes for the test.
+     * Only sends the classes / required classes if the hash of the test class isn't cached on the server to prevent
+     * unnecessary data transfer.
+     *
+     * @return The hash of the test class
      */
     private fun sendRequiredClasses(jUnitService: JUnitService, testClass: Class<*>): Int {
-        val requiredClasses = testClass.getAnnotation(RequiredClasses::class.java)?.data ?: arrayOf()
+        val requiredClasses = scanForRequiredClasses(testClass)
 
         val mainClassInfo = constructClassInfo(testClass)
         val hash = mainClassInfo.data.contentHashCode()
@@ -181,6 +201,25 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
         return hash
     }
 
+    /**
+     * Traverses the in @RequiredClasses mentioned class recursively to gather all required classes
+     */
+    private fun scanForRequiredClasses(testClass: Class<*>, result: LinkedHashSet<KClass<*>> = LinkedHashSet()): Set<KClass<*>> {
+        val required = testClass.getAnnotation(RequiredClasses::class.java)?.value ?: arrayOf()
+
+        for (clazz in required) {
+            if (clazz !in result) {
+                result += clazz
+                scanForRequiredClasses(clazz.java, result)
+            }
+        }
+
+        return result
+    }
+
+    /**
+     * Loads the class file to bytes and constructs a ClassInfo object
+     */
     private fun constructClassInfo(clazz: Class<*>): ClassInfo {
         val classFile = clazz.classLoader.getResource(clazz.name.replace(".", "/") + ".class")?.path
             ?: throw RuntimeException("Failed to find class $clazz")
@@ -189,18 +228,9 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
         return ClassInfo(clazz.name, bytes)
     }
 
-    private fun getContainerInfo(config: RemoteJUnitConfig?, provMethod: Method): ContainerInfo {
-        if (config?.reuseContainer == true) {
-            if (globalContainerInfo == null) {
-                globalContainerInfo = provMethod.invoke(null) as ContainerInfo
-            }
-
-            return globalContainerInfo as ContainerInfo
-        }
-
-        return provMethod.invoke(null) as ContainerInfo
-    }
-
+    /**
+     * Connects to the RMI servers log send server and launches an async log processor job
+     */
     private fun startLogReceiver(scope: CoroutineScope, host: String, port: Int): LogReceiverInfo {
         val socket = Socket(host, port)
 
@@ -241,6 +271,9 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
         return LogReceiverInfo(job, input, reader, socket)
     }
 
+    /**
+     * Getter for the LogReceiverInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
+     */
     private fun getLogReceiver(
         config: RemoteJUnitConfig?,
         scope: CoroutineScope,
@@ -258,23 +291,38 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
         return startLogReceiver(scope, host, port)
     }
 
-    private fun createJUnitService(host: String, port: Int): JUnitService {
-        val registry = LocateRegistry.getRegistry(host, port)
-        return registry.lookup("JUnitTestService") as JUnitService
-    }
-
-    private fun getJUnitService(config: RemoteJUnitConfig?, host: String, port: Int): JUnitService {
-        if (config?.reuseContainer == true) {
-            if (globalJUnitService == null) {
-                globalJUnitService = createJUnitService(host, port)
-            }
-
-            return globalJUnitService as JUnitService
+    /**
+     * Destroyer for the LogReceiverInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
+     */
+    private fun stopLogReceiver(config: RemoteJUnitConfig?, info: LogReceiverInfo, force: Boolean = false) {
+        if (config?.reuseContainer == true && !force) {
+            return
         }
 
-        return createJUnitService(host, port)
+        info.job.cancel("Test execution finished!")
+        info.reader.close()
+        info.input.close()
+        info.socket.close()
     }
 
+    /**
+     * Getter for the ContainerInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
+     */
+    private fun getContainerInfo(config: RemoteJUnitConfig?, provMethod: Method): ContainerInfo {
+        if (config?.reuseContainer == true) {
+            if (globalContainerInfo == null) {
+                globalContainerInfo = provMethod.invoke(null) as ContainerInfo
+            }
+
+            return globalContainerInfo as ContainerInfo
+        }
+
+        return provMethod.invoke(null) as ContainerInfo
+    }
+
+    /**
+     * Destroyer for the ContainerInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
+     */
     private fun destroyContainerInfo(
         config: RemoteJUnitConfig?,
         info: ContainerInfo,
@@ -288,17 +336,34 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
         destrMethod.invoke(null, info)
     }
 
-    private fun stopLogReceiver(config: RemoteJUnitConfig?, info: LogReceiverInfo, force: Boolean = false) {
-        if (config?.reuseContainer == true && !force) {
-            return
+
+    /**
+     * Connects to the RMI server and returns its JUnitService instance
+     */
+    private fun createJUnitService(host: String, port: Int): JUnitService {
+        val registry = LocateRegistry.getRegistry(host, port)
+        return registry.lookup("JUnitTestService") as JUnitService
+    }
+
+    /**
+     * Getter for the JUnitService object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
+     */
+    private fun getJUnitService(config: RemoteJUnitConfig?, host: String, port: Int): JUnitService {
+        if (config?.reuseContainer == true) {
+            if (globalJUnitService == null) {
+                globalJUnitService = createJUnitService(host, port)
+            }
+
+            return globalJUnitService as JUnitService
         }
 
-        info.job.cancel("Test execution finished!")
-        info.reader.close()
-        info.input.close()
-        info.socket.close()
+        return createJUnitService(host, port)
     }
+
 
 }
 
+/**
+ * Stores information about an async log receiving / processing task
+ */
 class LogReceiverInfo(val job: Job, val input: InputStream, val reader: BufferedReader, val socket: Socket)

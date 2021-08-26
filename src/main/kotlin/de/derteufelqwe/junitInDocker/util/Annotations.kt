@@ -1,10 +1,10 @@
-package de.derteufelqwe.junit4Docker.util
+package de.derteufelqwe.junitInDocker.util
 
 import kotlin.reflect.KClass
 
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-annotation class RequiredClasses(val data: Array<KClass<*>>)
+annotation class RequiredClasses(val value: Array<KClass<*>>)
 
 
 @Target(AnnotationTarget.FUNCTION)

@@ -1,4 +1,4 @@
-package de.derteufelqwe.junit4Docker
+package de.derteufelqwe.junitInDocker
 
 class TestTests {
     fun testTrue() {
