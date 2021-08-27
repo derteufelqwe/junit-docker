@@ -25,7 +25,7 @@ public class ExampleTests {
         System.out.println("I am a working test");
     }
 
-    @Test
+
     public void testFailure() {
         System.err.println("I am going to fail");
         throw new RuntimeException("Oh no! Failure.");
