@@ -1,0 +1,29 @@
+name: JUnitInDocker CI Pipeline
+
+#  - name: "Debug"
+#    uses: lhotari/action-upterm@v1
+
+on:
+  pull_request:
+    #  push:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+
+jobs:
+  Setup:
+    runs-on: ubuntu-20.04
+    steps:
+      # Prepare the environment
+      - name: "Clone Code"
+        uses: actions/checkout@v2
+      - name: "Setup JDK 8"
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      # Validate and build binary
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+      - name: Build with Gradle
+        run: ./gradlew build
