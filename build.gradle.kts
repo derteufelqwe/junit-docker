@@ -29,6 +29,8 @@ dependencies {
 
 tasks.test {
     useJUnit()
+    // Exclude the example tests, which don't actually test anything
+    exclude("de/derteufelqwe/example/**")
 }
 
 tasks.withType<KotlinCompile>() {

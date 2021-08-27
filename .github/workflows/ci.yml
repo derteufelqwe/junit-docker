@@ -4,9 +4,7 @@ name: JUnitInDocker CI Pipeline
 #    uses: lhotari/action-upterm@v1
 
 on:
-  pull_request:
-    #  push:
-    branches: [ "master" ]
+  release:
   workflow_dispatch:
 
 
@@ -27,3 +25,9 @@ jobs:
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Build with Gradle
         run: ./gradlew build
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/libs/JUnitDocker-1.0.jar
