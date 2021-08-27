@@ -7,13 +7,18 @@ import org.junit.Before
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import org.junit.runners.BlockJUnit4ClassRunner
+import sun.rmi.server.UnicastRef
+import sun.rmi.transport.LiveRef
+import sun.rmi.transport.tcp.TCPEndpoint
 import java.io.*
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
+import java.lang.reflect.Proxy
 import java.net.Socket
 import java.net.SocketException
 import java.nio.charset.StandardCharsets
 import java.rmi.registry.LocateRegistry
+import java.rmi.server.RemoteObjectInvocationHandler
 import java.util.*
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
@@ -342,7 +347,28 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
      */
     private fun createJUnitService(host: String, port: Int): JUnitService {
         val registry = LocateRegistry.getRegistry(host, port)
-        return registry.lookup("JUnitTestService") as JUnitService
+        val service = registry.lookup("JUnitTestService") as JUnitService
+
+        // As the RMI server is potentially running in a docker container the answer port sent by the server isn't actually the port to answer on.
+        // This is because docker exposes its internal port on a different port to the outside world.
+        // This changes the response port and hostname to the docker exposed port
+        val invocationHandler = Proxy.getInvocationHandler(service) as RemoteObjectInvocationHandler
+        val ref = invocationHandler.ref as UnicastRef
+        val liveRef = ref.liveRef as LiveRef
+
+        val epF = LiveRef::class.java.getDeclaredField("ep")
+        epF.isAccessible = true
+        val ep = epF.get(liveRef)
+
+        val portF = TCPEndpoint::class.java.getDeclaredField("port")
+        portF.isAccessible = true
+        val hostF = TCPEndpoint::class.java.getDeclaredField("host")
+        hostF.isAccessible = true
+
+        portF.setInt(ep, port)
+        hostF.set(ep, host)
+
+        return service
     }
 
     /**
