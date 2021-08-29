@@ -5,6 +5,7 @@ name: JUnitInDocker CI Pipeline
 
 on:
   release:
+    types: ["published"]
   workflow_dispatch:
 
 
@@ -26,8 +27,15 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build
 
+      # Save gradle version
+      - name: Fetch project version
+        run: |
+          version=$(./gradlew -q version)
+          echo "Project version is '$version'"
+          echo "VERSION=$version" >> $GITHUB_ENV
+
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: build/libs/JUnitDocker-1.0.jar
+          files: build/libs/JUnitDocker-${{ env.VERSION }}.jar

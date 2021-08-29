@@ -66,3 +66,14 @@ publishing {
     }
 }
 
+
+// Task to get current version of the project.
+abstract class VersionTask : DefaultTask() {
+
+    @org.gradle.api.tasks.TaskAction
+    fun printVersion() {
+        println(project.version)
+    }
+}
+
+tasks.register<VersionTask>("version")
