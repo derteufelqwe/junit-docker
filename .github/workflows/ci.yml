@@ -32,8 +32,8 @@ jobs:
         run: ./gradlew build
       - name: "Fetch build-artifact name"
         run: |
-          name=$(./gradlew -q artifactName)
-          echo "ARTIFACT_NAME=$name" >> $GITHUB_ENV
+          name="$(./gradlew -q artifactName)"
+          echo "ARTIFACT_NAME=\"$name\"" >> $GITHUB_ENV
 
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
