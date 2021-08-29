@@ -4,6 +4,8 @@ name: JUnitInDocker CI Pipeline
 #    uses: lhotari/action-upterm@v1
 
 on:
+  push:
+    branches: ["master"]
   release:
     types: ["published"]
   workflow_dispatch:
