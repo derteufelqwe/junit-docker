@@ -71,21 +71,11 @@ publishing {
             url = uri("https://maven.pkg.github.com/derteufelqwe/junit-docker")
             credentials {
                 username = "derteufelqwe"
-                password = getToken()
+                password = System.getenv("secrets.GH_PACKAGE_TOKEN")
             }
         }
     }
 
-}
-
-
-fun getToken(): String? {
-    val r = System.getenv("secrets.GH_PACKAGE_TOKEN")
-    if (r == null || r == "") {
-        println("No secret found")
-    }
-
-    return r
 }
 
 
