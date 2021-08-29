@@ -6,6 +6,10 @@ import java.rmi.server.UnicastRemoteObject
 
 class JUnitDockerServer(val rmiPort: Int = 1099) {
 
+    val server = JUnitServiceImpl()
+    val stub = UnicastRemoteObject.exportObject(server, 0) as JUnitService
+
+
     fun startAndAwait() {
         val server = JUnitServiceImpl()
         val stub = UnicastRemoteObject.exportObject(server, rmiPort) as JUnitService

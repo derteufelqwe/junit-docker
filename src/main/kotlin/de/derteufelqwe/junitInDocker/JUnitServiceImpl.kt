@@ -28,7 +28,7 @@ class JUnitServiceImpl : JUnitService {
         val rcl =
             classCache[classHash] ?: throw RuntimeException("Failed to load RemoteClassLoader for hash '$classHash'!")
 
-        var clazz: Class<*> = rcl.loadClass(className)
+        val clazz: Class<*> = rcl.loadClass(className)
 
         try {
             val inst = instanceCache.getOrPut(instanceId) { clazz.getConstructor().newInstance() }
@@ -60,17 +60,17 @@ class JUnitServiceImpl : JUnitService {
 
     fun startLogServer() {
         consoleOut.println("Starting log server")
-        runBlocking {
+        // runBlocking {
 
-            while (isActive) {
+            while (true) {
                 val socket = socketServer.accept()
                 consoleOut.println("Accepted socket ${socket.port}")
 
-                launch(Dispatchers.IO) {
+                // launch(Dispatchers.IO) {
                     val output = socket.getOutputStream()
 
                     try {
-                        while (isActive) {
+                        while (true) {
                             if (logOutBuffer.size() == 0 && logErrBuffer.size() == 0) {
                                 continue
                             }
@@ -99,8 +99,8 @@ class JUnitServiceImpl : JUnitService {
                 }
 
             }
-        }
-    }
+       // }
+    //}
 
     fun redirectConsole() {
         System.setOut(PrintStream(logOutBuffer))

@@ -1,15 +1,13 @@
 package de.derteufelqwe.example;
 
 import de.derteufelqwe.junitInDocker.DockerRunner;
-import de.derteufelqwe.junitInDocker.util.ContainerDestroyer;
-import de.derteufelqwe.junitInDocker.util.ContainerInfo;
-import de.derteufelqwe.junitInDocker.util.ContainerProvider;
-import de.derteufelqwe.junitInDocker.util.RequiredClasses;
+import de.derteufelqwe.junitInDocker.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(DockerRunner.class)
 @RequiredClasses(value = {Dep1.class})
+@RemoteJUnitConfig(reuseContainer = false)
 public class ExampleTests {
 
     @ContainerProvider
@@ -27,7 +25,7 @@ public class ExampleTests {
         System.out.println("I am a working test");
     }
 
-    @Test
+
     public void testFailure() {
         System.err.println("I am going to fail");
         throw new RuntimeException("Oh no! Failure.");
