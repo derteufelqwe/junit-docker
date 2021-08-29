@@ -22,8 +22,9 @@ jobs:
           java-version: 8
 
       # Gradle setup and build
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+### Not used due to frequent connection failures ###
+#      - name: Validate Gradle wrapper
+#        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
       - name: Fetch build artifact name
         run: |
           name=$(./gradlew -q artifactName)
