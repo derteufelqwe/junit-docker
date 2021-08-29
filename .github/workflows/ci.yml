@@ -21,21 +21,23 @@ jobs:
         with:
           java-version: 8
 
-      # Validate and build binary
+      # Gradle setup and build
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+      - name: Fetch build artifact name
+        run: |
+          name=$(./gradlew -q artifactName)
+          echo "ARTIFACT_NAME=name" >> $GITHUB_ENV
       - name: Build with Gradle
         run: ./gradlew build
 
-      # Save gradle version
-      - name: Fetch project version
-        run: |
-          version=$(./gradlew -q version)
-          echo "Project version is '$version'"
-          echo "VERSION=$version" >> $GITHUB_ENV
+      # Upload jar to Github packages
+      - name: "Upload to GitHub packages"
+        run: ./gradlew publish
 
+      # Attach jar as release artifact
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: build/libs/JUnitDocker-${{ env.VERSION }}.jar
+          files: build/libs/${{ env.ARTIFACT_NAME }}

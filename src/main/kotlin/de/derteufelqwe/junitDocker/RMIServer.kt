@@ -1,4 +1,4 @@
-package de.derteufelqwe.junitInDocker
+package de.derteufelqwe.junitDocker
 
 object RMIServer {
 

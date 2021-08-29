@@ -1,4 +1,4 @@
-package de.derteufelqwe.junitInDocker
+package de.derteufelqwe.junitDocker
 
 import java.rmi.registry.LocateRegistry
 import java.rmi.registry.Registry

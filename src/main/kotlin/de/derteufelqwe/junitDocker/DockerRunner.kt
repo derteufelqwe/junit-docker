@@ -1,6 +1,6 @@
-package de.derteufelqwe.junitInDocker
+package de.derteufelqwe.junitDocker
 
-import de.derteufelqwe.junitInDocker.util.*
+import de.derteufelqwe.junitDocker.util.*
 import kotlinx.coroutines.*
 import org.junit.After
 import org.junit.Before

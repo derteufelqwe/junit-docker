@@ -1,4 +1,4 @@
-package de.derteufelqwe.junitInDocker
+package de.derteufelqwe.junitDocker
 
 import sun.rmi.server.UnicastRef
 import sun.rmi.transport.LiveRef

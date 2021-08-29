@@ -1,4 +1,4 @@
-package de.derteufelqwe.junitInDocker
+package de.derteufelqwe.junitDocker
 
 class RemoteClassLoader(var bytes: ByteArray = ByteArray(0)) : ClassLoader() {
 

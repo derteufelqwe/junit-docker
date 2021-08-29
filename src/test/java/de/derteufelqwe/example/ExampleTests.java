@@ -1,7 +1,7 @@
 package de.derteufelqwe.example;
 
-import de.derteufelqwe.junitInDocker.DockerRunner;
-import de.derteufelqwe.junitInDocker.util.*;
+import de.derteufelqwe.junitDocker.DockerRunner;
+import de.derteufelqwe.junitDocker.util.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 

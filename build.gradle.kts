@@ -2,10 +2,10 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm") version "1.5.30"
-    `maven-publish`
+    id("maven-publish")
 }
 
-group = "de.derteufelqwe.junitInDocker"
+group = "de.derteufelqwe.junit-docker"
 version = "1.0"
 
 repositories {
@@ -24,7 +24,7 @@ dependencies {
     // https://mvnrepository.com/artifact/junit/junit
     implementation("junit:junit:4.13.2")
 
-    testImplementation(kotlin("test"))
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.5.21")
 }
 
 tasks.test {
@@ -42,13 +42,13 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = group as String
-            artifactId = "junitInDocker"
+            artifactId = "junit-docker"
             version = version
 
             from(components["java"])
 
             pom {
-                name.set("JUnit-Docker")
+                name.set("JUnit-Dockerxx")
                 description.set("Run JUnit4 tests inside of docker containers or on remote hosts")
                 licenses {
                     license {
@@ -64,16 +64,28 @@ publishing {
             }
         }
     }
+
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/derteufelqwe/junit-docker")
+            credentials {
+                username = "derteufelqwe"
+                password = System.getenv("GH_PACKAGE_TOKEN")
+            }
+        }
+    }
+
 }
 
 
 // Task to get current version of the project.
-abstract class VersionTask : DefaultTask() {
+abstract class ArtifactNameTask : DefaultTask() {
 
     @org.gradle.api.tasks.TaskAction
-    fun printVersion() {
-        println(project.version)
+    fun printArtifactName() {
+        println("${project.name}-${project.version}.jar")
     }
 }
 
-tasks.register<VersionTask>("version")
+tasks.register<ArtifactNameTask>("artifactName")
