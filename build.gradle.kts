@@ -71,7 +71,7 @@ publishing {
             url = uri("https://maven.pkg.github.com/derteufelqwe/junit-docker")
             credentials {
                 username = "derteufelqwe"
-                password = System.getenv("secrets.GH_PACKAGE_TOKEN")
+                password = System.getenv("GH_PACKAGE_TOKEN")
             }
         }
     }
