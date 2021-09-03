@@ -43,7 +43,7 @@ jobs:
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
         env:
-          GH_PACKAGE_TOKEN: "${{ secrets.GH_PACKAGE_TOKEN }}"
+          GITHUB_TOKEN: $GITHUB_TOKEN
         run: ./gradlew publish
 
       # Attach jar as release artifact

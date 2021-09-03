@@ -127,7 +127,8 @@ class JUnitServiceImpl : JUnitService {
             out.flush()
 
         } catch (e: IOException) {
-            consoleOut.println("Sending logs failed")
+            consoleErr.println("Sending logs failed")
+            e.printStackTrace(consoleErr)
         }
     }
 

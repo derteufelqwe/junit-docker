@@ -23,6 +23,7 @@ import java.util.*
 import kotlin.collections.LinkedHashSet
 import kotlin.reflect.KClass
 import kotlin.reflect.full.companionObject
+import kotlin.system.measureTimeMillis
 
 
 /**
@@ -347,7 +348,11 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
      */
     private fun createJUnitService(host: String, port: Int): JUnitService {
         val registry = LocateRegistry.getRegistry(host, port)
-        val service = registry.lookup("JUnitTestService") as JUnitService
+        val service: JUnitService
+        val time = measureTimeMillis {
+            service = registry.lookup("JUnitTestService") as JUnitService
+        }
+        println("Lookup took $time ms")
 
         // As the RMI server is potentially running in a docker container the answer port sent by the server isn't actually the port to answer on.
         // This is because docker exposes its internal port on a different port to the outside world.

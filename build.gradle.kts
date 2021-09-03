@@ -8,6 +8,8 @@ plugins {
 group = "de.derteufelqwe.junit-docker"
 version = "1.0"
 
+val mainClass = "de.derteufelqwe.junitDocker.RMIServer"
+
 repositories {
     mavenCentral()
     mavenLocal()
@@ -30,13 +32,23 @@ dependencies {
 tasks.test {
     useJUnit()
     // Exclude the example tests, which don't actually test anything
-    exclude("de/derteufelqwe/example/**")
+//    exclude("de/derteufelqwe/example/**")
 }
 
 tasks.withType<KotlinCompile>() {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+tasks.jar {
+    manifest {
+        attributes("Main-Class" to mainClass)
+    }
+}
 
 publishing {
     publications {
@@ -71,7 +83,7 @@ publishing {
             url = uri("https://maven.pkg.github.com/derteufelqwe/junit-docker")
             credentials {
                 username = "derteufelqwe"
-                password = System.getenv("GH_PACKAGE_TOKEN")
+                password = System.getenv("GITHUB_TOKEN")
             }
         }
     }
@@ -89,3 +101,20 @@ abstract class ArtifactNameTask : DefaultTask() {
 }
 
 tasks.register<ArtifactNameTask>("artifactName")
+
+
+tasks {
+    register("fatJar", Jar::class.java) {
+        archiveClassifier.set("all")
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        manifest {
+            attributes("Main-Class" to mainClass)
+        }
+        from(configurations.runtimeClasspath.get()
+            .onEach { println("add from dependencies: ${it.name}") }
+            .map { if (it.isDirectory) it else zipTree(it) })
+        val sourcesMain = sourceSets.main.get()
+        sourcesMain.allSource.forEach { println("add from sources: ${it.name}") }
+        from(sourcesMain.output)
+    }
+}
