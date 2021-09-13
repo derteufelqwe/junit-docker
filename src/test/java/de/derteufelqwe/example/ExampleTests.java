@@ -7,13 +7,13 @@ import org.junit.runner.RunWith;
 
 @RunWith(DockerRunner.class)
 @RequiredClasses(value = {Dep1.class})
-@RemoteJUnitConfig(reuseContainer = true, logReceiveDelay = 200)
+@RemoteJUnitConfig(reuseContainer = false)
 public class ExampleTests {
 
     @ContainerProvider
     public static ContainerInfo provideContainer() {
+        return new ContainerInfo("localhost", "", 1099, 9876);
 //        return new ContainerInfo("localhost", 1099, 9876);
-        return new ContainerInfo("localhost", 5000, 5001);
     }
 
     @ContainerDestroyer
@@ -24,6 +24,10 @@ public class ExampleTests {
     @Test
     public void testSuccess() {
         System.out.println("I am a working test");
+    }
+
+    @Test
+    public void testSuccess2() {
         System.out.println("I am a working test2");
     }
 

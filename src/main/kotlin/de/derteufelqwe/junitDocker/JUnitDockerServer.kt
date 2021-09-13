@@ -9,7 +9,7 @@ class JUnitDockerServer(val rmiPort: Int = 1099) {
 
     fun startAndAwait() {
 //        System.setProperty("java.rmi.server.logCalls", "true");
-        System.setProperty("java.rmi.server.hostname", "localhost");
+        System.setProperty("java.rmi.server.hostname", "localhost")
 
         val server = JUnitServiceImpl()
         val stub = UnicastRemoteObject.exportObject(server, rmiPort) as JUnitService
@@ -28,12 +28,5 @@ class JUnitDockerServer(val rmiPort: Int = 1099) {
 
     }
 
-    private fun initialCall() {
-        val t1 = measureTimeMillis {
-            val registry = LocateRegistry.getRegistry("localhost", rmiPort)
-            val service = registry.lookup("JUnitTestService") as JUnitService
-        }
-        println("Initial call took $t1 ms")
-    }
 
 }

@@ -37,6 +37,7 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
     private var globalContainerInfo: ContainerInfo? = null  // Used for the runAllInOne config
     private var globalLogServer: LogReceiverInfo? = null
     private var globalJUnitService: JUnitService? = null
+    private var config: RemoteJUnitConfig? = null
 
 
     /**
@@ -63,7 +64,7 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
 
 
             // Read the config object
-            val config = testClass.getAnnotation(RemoteJUnitConfig::class.java)
+            this@DockerRunner.config = testClass.getAnnotation(RemoteJUnitConfig::class.java)
 
 
             // Create the global container info if required
@@ -80,10 +81,10 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
             // Execute the tests
             val instanceId = UUID.randomUUID()
             for (child in description.children) {
-                val containerInfo = getContainerInfo(config, provMethod)
+                val containerInfo = getContainerInfo(provMethod)
                 delay(config?.containerStartupDelay ?: 1000L)   // Wait for the container to get up and running
-                val logReceiver = getLogReceiver(config, this, containerInfo.host, containerInfo.logPort)
-                val jUnitService = getJUnitService(config, containerInfo.host, containerInfo.rmiPort)
+                val logReceiver = getLogReceiver(this, containerInfo.host, containerInfo.logPort)
+                val jUnitService = getJUnitService(containerInfo.host, containerInfo.rmiPort)
                 val hash = sendRequiredClasses(jUnitService, child.testClass)
 
                 notifier.fireTestStarted(child)
@@ -106,19 +107,19 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
                     notifier.fireTestFailure(Failure(child, e))
 
                 } finally {
-                    stopLogReceiver(config, logReceiver)
-                    destroyContainerInfo(config, containerInfo, destrMethod)
+                    stopLogReceiver(logReceiver)
+                    destroyContainerInfo(containerInfo, destrMethod)
                 }
 
             }
 
             // Call destroy for the global objects
             globalLogServer?.let {
-                stopLogReceiver(config, it, true)
+                stopLogReceiver(it, true)
             }
 
             globalContainerInfo?.let {
-                destroyContainerInfo(config, it, destrMethod, true)
+                destroyContainerInfo(it, destrMethod, true)
             }
         }
 
@@ -174,12 +175,6 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
         val requiredClasses = scanForRequiredClasses(testClass)
 
         val mainClassInfo = constructClassInfo(testClass)
-        val hash = mainClassInfo.data.contentHashCode()
-
-        // Only load the classes if they aren't cached on the server
-        if (jUnitService.isClassCached(hash)) {
-            return hash
-        }
 
         val classInfos = requiredClasses.map {
             constructClassInfo(it.java)
@@ -202,10 +197,22 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
             classInfos.add(constructClassInfo(companion.java))
         }
 
+        // Calculate the hash sum
+        val hashSum: Long = classInfos.fold(mainClassInfo.data.contentHashCode().toLong()) {acc, classInfo ->
+            acc + classInfo.data.contentHashCode()
+        }
+
+        val hash = (hashSum % Int.MAX_VALUE).toInt()
+
+        if (config?.useCache == true && jUnitService.isClassCached(hash)) {
+            return hash
+        }
+
         jUnitService.loadRequiredClasses(mainClassInfo, classInfos, hash)
 
         return hash
     }
+
 
     /**
      * Traverses the in @RequiredClasses mentioned class recursively to gather all required classes
@@ -281,7 +288,6 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
      * Getter for the LogReceiverInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
      */
     private fun getLogReceiver(
-        config: RemoteJUnitConfig?,
         scope: CoroutineScope,
         host: String,
         port: Int
@@ -300,7 +306,7 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
     /**
      * Destroyer for the LogReceiverInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
      */
-    private fun stopLogReceiver(config: RemoteJUnitConfig?, info: LogReceiverInfo, force: Boolean = false) {
+    private fun stopLogReceiver(info: LogReceiverInfo, force: Boolean = false) {
         if (config?.reuseContainer == true && !force) {
             return
         }
@@ -314,7 +320,7 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
     /**
      * Getter for the ContainerInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
      */
-    private fun getContainerInfo(config: RemoteJUnitConfig?, provMethod: Method): ContainerInfo {
+    private fun getContainerInfo(provMethod: Method): ContainerInfo {
         if (config?.reuseContainer == true) {
             if (globalContainerInfo == null) {
                 globalContainerInfo = provMethod.invoke(null) as ContainerInfo
@@ -330,7 +336,6 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
      * Destroyer for the ContainerInfo object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
      */
     private fun destroyContainerInfo(
-        config: RemoteJUnitConfig?,
         info: ContainerInfo,
         destrMethod: Method,
         force: Boolean = false
@@ -379,7 +384,7 @@ class DockerRunner(testClass: Class<*>) : BlockJUnit4ClassRunner(testClass) {
     /**
      * Getter for the JUnitService object, which takes care of the RemoteJUnitConfig#reuseContainer parameter.
      */
-    private fun getJUnitService(config: RemoteJUnitConfig?, host: String, port: Int): JUnitService {
+    private fun getJUnitService(host: String, port: Int): JUnitService {
         if (config?.reuseContainer == true) {
             if (globalJUnitService == null) {
                 globalJUnitService = createJUnitService(host, port)

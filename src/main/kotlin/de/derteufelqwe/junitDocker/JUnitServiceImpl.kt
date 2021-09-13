@@ -2,12 +2,14 @@ package de.derteufelqwe.junitDocker
 
 import de.derteufelqwe.junitDocker.util.LogPacketHeader
 import de.derteufelqwe.junitDocker.util.LogSource
+import kotlinx.coroutines.delay
 import java.io.*
 import java.lang.reflect.InvocationTargetException
 import java.net.ServerSocket
 import java.net.SocketException
 import java.rmi.RemoteException
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class JUnitServiceImpl : JUnitService {
 
@@ -70,10 +72,6 @@ class JUnitServiceImpl : JUnitService {
 
                     try {
                         while (true) {
-                            if (logOutBuffer.size() == 0 && logErrBuffer.size() == 0) {
-                                continue
-                            }
-
                             // Check if the current connection is actually still alive by trying to send a keepalive packet
                             try {
                                 writeHeader(LogPacketHeader(keepAlive = true), output)
@@ -88,6 +86,8 @@ class JUnitServiceImpl : JUnitService {
                             if (logErrBuffer.size() != 0) {
                                 sendBuffer(logErrBuffer, output, LogSource.ERR)
                             }
+
+                            TimeUnit.MILLISECONDS.sleep(50L)
                         }
 
                     } finally {
