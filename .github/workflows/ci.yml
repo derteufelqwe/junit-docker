@@ -38,7 +38,7 @@ jobs:
 
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
-#        if: github.event_name == 'release'
+        if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
