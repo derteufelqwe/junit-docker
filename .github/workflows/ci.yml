@@ -24,8 +24,9 @@ jobs:
           java-version: 8
 
       - name: "Test"
-        if: ${{ env.GITHUB_EVENT_NAME == 'push' }}
+#        if: ${{ env.GITHUB_EVENT_NAME == 'push' }}
         run: |
+          echo "${{ github.event_name }}"
           echo "$GITHUB_EVENT_NAME"
           echo "${{ env.GITHUB_EVENT_NAME == 'push' }}"
           echo "$GITHUB_EVENT_NAME" == "push"
