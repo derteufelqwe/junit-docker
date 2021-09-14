@@ -38,7 +38,7 @@ jobs:
 
       - name: "Debug"
         env:
-          GITHUB_TOKEN: $GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         uses: lhotari/action-upterm@v1
 
       # Upload jar to Github packages
