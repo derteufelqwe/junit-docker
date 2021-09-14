@@ -42,7 +42,7 @@ jobs:
 
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
-        if: ${{ env.GITHUB_EVENT_NAME == "push" }}
+        if: ${{ env.GITHUB_EVENT_NAME == 'push' }}
         env:
           GITHUB_TOKEN: $GITHUB_TOKEN
         run: ./gradlew publish
