@@ -25,8 +25,9 @@ jobs:
 
       - name: "Test"
         run: |
+          echo "$GITHUB_EVENT_NAME"
           echo "${{ env.GITHUB_EVENT_NAME == 'push' }}"
-          echo "${{ env.GITHUB_EVENT_NAME }}" == "push"
+          echo "$GITHUB_EVENT_NAME" == "push"
 
 
 #      # Gradle setup and build
