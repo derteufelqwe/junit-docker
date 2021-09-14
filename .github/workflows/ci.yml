@@ -32,6 +32,10 @@ jobs:
           echo "$GITHUB_EVENT_NAME" == "push"
 
 
+      - name: "test2"
+        if: ${{ github.event_name == 'push' }}
+        run: echo "yo"
+
 #      # Gradle setup and build
 #      - name: "Cache gradle wrapper"
 #        uses: actions/cache@v2
