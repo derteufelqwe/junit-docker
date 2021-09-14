@@ -41,7 +41,9 @@ jobs:
         if: github.event_name == 'release'
         env:
           GITHUB_TOKEN: $GITHUB_TOKEN
-        run: ./gradlew publish
+        run: |
+          echo "Github token: $GITHUB_TOKEN"
+          ./gradlew publish
 
       # Attach jar as release artifact
       - name: "Release"
