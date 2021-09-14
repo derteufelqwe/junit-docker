@@ -36,16 +36,11 @@ jobs:
           name=$(./gradlew -q artifactName)
           echo "ARTIFACT_NAME=$name" >> $GITHUB_ENV
 
-      - name: "Debug"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: lhotari/action-upterm@v1
-
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
 #        if: github.event_name == 'release'
         env:
-          GITHUB_TOKEN: $GITHUB_TOKEN
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "${{ env.GITHUB_TOKEN }}"
           ./gradlew publish
