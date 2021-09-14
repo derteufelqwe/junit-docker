@@ -40,9 +40,6 @@ jobs:
           name=$(./gradlew -q artifactName)
           echo "ARTIFACT_NAME=$name" >> $GITHUB_ENV
 
-      - name: "test"
-        run: echo "$GITHUB_EVENT_NAME"
-
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
         if: env.GITHUB_EVENT_NAME == 'release'
@@ -53,6 +50,6 @@ jobs:
       # Attach jar as release artifact
       - name: "Release"
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
+        if: env.GITHUB_EVENT_NAME == 'release'
         with:
           files: build/libs/${{ env.ARTIFACT_NAME }}

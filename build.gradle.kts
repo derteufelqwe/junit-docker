@@ -31,7 +31,7 @@ dependencies {
 
 tasks.test {
     useJUnit()
-    // Exclude the example tests, which don't actually test anything
+    // Only exclude the example tests, which don't actually test anything, when running a CI build
     if (System.getenv("GITHUB_WORKFLOW") != null) {
         println("Excluding example tests for Github CI build")
         exclude("de/derteufelqwe/example/**")
