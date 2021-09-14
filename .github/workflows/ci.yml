@@ -45,7 +45,7 @@ jobs:
 
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
-        if: $GITHUB_EVENT_NAME == "release"
+        if: env.GITHUB_EVENT_NAME == "release"
         env:
           GITHUB_TOKEN: $GITHUB_TOKEN
         run: ./gradlew publish
