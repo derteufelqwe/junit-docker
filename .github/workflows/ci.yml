@@ -33,11 +33,11 @@ jobs:
 
 
       - name: "test2"
-        if: ${{ env.GITHUB_EVENT_NAME == 'push' }}
+        if: github.event_name == 'push'
         run: echo "yo"
 
       - name: "test23"
-        if: ${{ env.GITHUB_EVENT_NAME == 'release' }}
+        if: github.event_name == 'release'
         run: echo "yo"
 
 #      # Gradle setup and build
