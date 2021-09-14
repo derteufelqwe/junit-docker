@@ -20,7 +20,7 @@ repositories {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.1-native-mt")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2-native-mt")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-reflect
     implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.30")
     // https://mvnrepository.com/artifact/junit/junit
@@ -32,7 +32,10 @@ dependencies {
 tasks.test {
     useJUnit()
     // Exclude the example tests, which don't actually test anything
-//    exclude("de/derteufelqwe/example/**")
+    if (System.getenv("GITHUB_WORKFLOW") != null) {
+        println("Excluding example tests for Github CI build")
+        exclude("de/derteufelqwe/example/**")
+    }
 }
 
 tasks.withType<KotlinCompile>() {

@@ -1,6 +1,10 @@
 package de.derteufelqwe.junitDocker
 
+import org.junit.Test
+
+
 class TestTests {
+
     fun testTrue() {
         println("Ich bin testTrue")
     }

@@ -2,6 +2,9 @@ package de.derteufelqwe.example;
 
 import de.derteufelqwe.junitDocker.DockerRunner;
 import de.derteufelqwe.junitDocker.util.*;
+import org.junit.Assert;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -20,6 +23,11 @@ public class ExampleTests {
     @ContainerDestroyer
     public static void destroyContainer(ContainerInfo info) {
 
+    }
+
+    @Before
+    public void beforeMethod() {
+        Assume.assumeTrue(false);
     }
 
     @Test
