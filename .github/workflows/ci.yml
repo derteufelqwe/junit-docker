@@ -40,8 +40,12 @@ jobs:
           name=$(./gradlew -q artifactName)
           echo "ARTIFACT_NAME=$name" >> $GITHUB_ENV
 
+      - name: "test"
+        run: echo "$GITHUB_EVENT_NAME"
+
       # Upload jar to Github packages
       - name: "Upload to GitHub packages"
+        if: startsWith(github.ref, 'refs/tags/')
         env:
           GITHUB_TOKEN: $GITHUB_TOKEN
         run: ./gradlew publish
