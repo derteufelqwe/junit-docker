@@ -1,7 +1,9 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
+
+
 plugins {
-    kotlin("jvm") version "1.5.30"
+    kotlin("jvm") version "1.6.0"
     id("maven-publish")
 }
 
@@ -18,15 +20,15 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.0")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-coroutines-core
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2-native-mt")
     // https://mvnrepository.com/artifact/org.jetbrains.kotlin/kotlin-reflect
-    implementation("org.jetbrains.kotlin:kotlin-reflect:1.5.30")
+    implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.0")
     // https://mvnrepository.com/artifact/junit/junit
     implementation("junit:junit:4.13.2")
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test:1.5.21")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:1.6.0")
 }
 
 tasks.test {
@@ -63,7 +65,7 @@ publishing {
             from(components["java"])
 
             pom {
-                name.set("JUnit-Dockerxx")
+                name.set("JUnit-Docker")
                 description.set("Run JUnit4 tests inside of docker containers or on remote hosts")
                 licenses {
                     license {

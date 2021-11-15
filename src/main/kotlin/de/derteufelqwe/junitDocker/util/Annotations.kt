@@ -27,4 +27,8 @@ annotation class RemoteJUnitConfig(
 )
 
 
-data class ContainerInfo(val host: String, val containerID: String, val rmiPort: Int, val logPort: Int)
+data class ContainerInfo(val host: String, val containerID: String, val rmiPort: Int, val logPort: Int,
+                         val infos: MutableMap<String, Any>) {
+    // Default value not working when calling from java
+    constructor(host: String, containerID: String, rmiPort: Int, logPort: Int) : this(host, containerID, rmiPort, logPort, mutableMapOf())
+}
